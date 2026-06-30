@@ -1,0 +1,17 @@
+{
+  "name": "petro-ops",
+  "private": true,
+  "workspaces": [
+    "packages/*",
+    "packages/core/*"
+  ],
+  "scripts": {
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "typescript": "^5.7.0",
+    "vitest": "^2.1.0"
+  }
+}

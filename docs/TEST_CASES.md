@@ -59,28 +59,32 @@ Given all sensor values are normal,
 when risk is calculated,
 then the risk score should not be below 0.
 
+Note: 39 and 69 are not reachable through any combination of the sensor point bands above,
+so HE-10–HE-13 test the classification boundary rule directly via `classifyStatus(score)`
+rather than through sensor-derived scores.
+
 ### HE-10: Score of exactly 39 classifies as Healthy
 
-Given sensor readings that sum to a risk score of exactly 39,
-when the health engine calculates risk,
+Given a risk score of exactly 39,
+when classifyStatus is called with that score,
 then the status should be Healthy.
 
 ### HE-11: Score of exactly 40 classifies as Warning
 
-Given sensor readings that sum to a risk score of exactly 40,
-when the health engine calculates risk,
+Given a risk score of exactly 40,
+when classifyStatus is called with that score,
 then the status should be Warning.
 
 ### HE-12: Score of exactly 69 classifies as Warning
 
-Given sensor readings that sum to a risk score of exactly 69,
-when the health engine calculates risk,
+Given a risk score of exactly 69,
+when classifyStatus is called with that score,
 then the status should be Warning.
 
 ### HE-13: Score of exactly 70 classifies as Critical
 
-Given sensor readings that sum to a risk score of exactly 70,
-when the health engine calculates risk,
+Given a risk score of exactly 70,
+when classifyStatus is called with that score,
 then the status should be Critical.
 
 ---

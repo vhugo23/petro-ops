@@ -72,6 +72,13 @@ Classification boundary rule (applied to the summed score):
 - 69 → Warning
 - 70 → Critical
 
+The health engine exposes two functions: `calculateHealthAssessment(asset, reading)`, which
+computes the score and reasons from sensor data, and a separate pure function
+`classifyStatus(score)`, which maps a numeric score to Healthy/Warning/Critical. Not every
+score from 0–100 is reachable through a combination of the sensor point bands above (for
+example, 39 and 69 are not), so `classifyStatus` is exposed directly to make the boundary
+rule itself testable independent of sensor-derived scores.
+
 Trigger model: health assessments are calculated on demand from the latest sensor readings
 for an asset, not on a schedule or stream. Each assessment output must include enough fields
 to be traceable (assessmentId, timestamp, contributing factors/reasons).
