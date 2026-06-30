@@ -67,4 +67,12 @@ describe("API", () => {
     const res = await fetch(`${base}/not-a-real-route`);
     expect(res.status).toBe(404);
   });
+
+  test("API-7: GET / serves the dashboard HTML page", async () => {
+    const res = await fetch(`${base}/`);
+    expect(res.status).toBe(200);
+    expect(res.headers.get("content-type")).toContain("text/html");
+    const html = await res.text();
+    expect(html).toContain("PetroOps");
+  });
 });

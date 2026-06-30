@@ -1,4 +1,6 @@
 import http from "node:http";
+import fs from "node:fs";
+import path from "node:path";
 import { mockAssets } from "../../mock-data/src/assets";
 import { mockSensorReadings } from "../../mock-data/src/sensorReadings";
 import { mockProductionAssumptions } from "../../mock-data/src/productionAssumptions";
@@ -24,6 +26,17 @@ export function createServer(): http.Server {
         return [getAssetOperationSummary(asset, reading, mockProductionAssumptions)];
       });
       return sendJson(res, 200, summaries);
+    }
+
+    if (req.method === "GET" && pathname === "/") {
+      try {
+        const html = fs.readFileSync(path.resolve("public", "index.html"), "utf-8");
+        res.writeHead(200, { "Content-Type": "text/html" });
+        res.end(html);
+      } catch {
+        sendJson(res, 404, { error: "Dashboard not found" });
+      }
+      return;
     }
 
     const assetMatch = pathname.match(/^\/assets\/([^/]+)\/summary$/);

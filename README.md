@@ -76,6 +76,18 @@ The `PORT` variable can also be set in `.env.example` (loaded automatically insi
 
 ---
 
+## Dashboard
+
+Start the API, then open a browser at:
+
+```
+http://localhost:3000
+```
+
+The dashboard fetches live data from `/operations-summary` and renders all assets with their calculated health status, risk score, maintenance actions, and commercial impact estimates.
+
+---
+
 ## API Endpoints
 
 | Method | Path | Description |

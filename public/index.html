@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PetroOps AI — Operations Dashboard</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      background: #0f172a;
+      color: #e2e8f0;
+      min-height: 100vh;
+      padding: 2rem;
+    }
+    header { margin-bottom: 2rem; }
+    header h1 { font-size: 1.5rem; font-weight: 700; letter-spacing: -0.02em; }
+    header p { color: #94a3b8; font-size: 0.875rem; margin-top: 0.25rem; }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+      gap: 1.25rem;
+    }
+    .card {
+      background: #1e293b;
+      border: 1px solid #334155;
+      border-radius: 10px;
+      padding: 1.25rem 1.5rem;
+    }
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 1rem;
+    }
+    .asset-name { font-size: 1rem; font-weight: 600; }
+    .asset-meta { color: #94a3b8; font-size: 0.8rem; margin-top: 0.2rem; }
+    .badge {
+      padding: 0.2rem 0.65rem;
+      border-radius: 9999px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      white-space: nowrap;
+    }
+    .badge-Healthy  { background: #14532d; color: #86efac; }
+    .badge-Warning  { background: #78350f; color: #fde68a; }
+    .badge-Critical { background: #7f1d1d; color: #fca5a5; }
+    .metric {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      padding: 0.45rem 0;
+      border-top: 1px solid #334155;
+      font-size: 0.875rem;
+      gap: 1rem;
+    }
+    .metric-label { color: #94a3b8; flex-shrink: 0; }
+    .metric-value { font-weight: 500; text-align: right; }
+    .state { color: #e2e8f0; }
+    .loading, .error { color: #94a3b8; }
+    .error { color: #f87171; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>PetroOps AI</h1>
+    <p>Operations Intelligence Dashboard</p>
+  </header>
+  <div id="root"><p class="loading">Loading asset data…</p></div>
+
+  <script>
+    async function load() {
+      const root = document.getElementById("root");
+      try {
+        const res = await fetch("/operations-summary");
+        if (!res.ok) throw new Error("HTTP " + res.status);
+        const summaries = await res.json();
+        root.innerHTML = grid(summaries);
+      } catch (err) {
+        root.innerHTML = '<p class="error">Failed to load: ' + err.message + "</p>";
+      }
+    }
+
+    function grid(summaries) {
+      return '<div class="grid">' + summaries.map(card).join("") + "</div>";
+    }
+
+    function card(s) {
+      const a  = s.asset;
+      const ha = s.healthAssessment;
+      const wo = s.workOrderEvaluation;
+      const ci = s.commercialImpact;
+
+      let maintenance = "None";
+      if (wo.workOrder) {
+        maintenance = wo.workOrder.priority + " — " + wo.workOrder.status;
+      } else if (wo.advisory) {
+        const reasons = wo.advisory.reasons.length
+          ? wo.advisory.reasons.join(", ")
+          : "Monitor closely";
+        maintenance = "Advisory: " + reasons;
+      }
+
+      return (
+        '<div class="card">' +
+          '<div class="card-header">' +
+            '<div>' +
+              '<div class="asset-name">' + esc(a.name) + "</div>" +
+              '<div class="asset-meta">' +
+                esc(a.type) + " · " + esc(a.location) + " · Criticality: " + esc(a.criticality) +
+              "</div>" +
+            "</div>" +
+            '<span class="badge badge-' + esc(ha.status) + '">' + esc(ha.status) + "</span>" +
+          "</div>" +
+          metric("Risk Score",       ha.riskScore + " / 100") +
+          metric("Maintenance",      maintenance) +
+          metric("Est. Downtime",    ci.estimatedDowntimeHours + "h") +
+          metric("Revenue Impact",   "$" + ci.revenueImpactEstimate.toLocaleString()) +
+        "</div>"
+      );
+    }
+
+    function metric(label, value) {
+      return (
+        '<div class="metric">' +
+          '<span class="metric-label">' + esc(label) + "</span>" +
+          '<span class="metric-value">' + esc(String(value)) + "</span>" +
+        "</div>"
+      );
+    }
+
+    function esc(str) {
+      return String(str)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;");
+    }
+
+    load();
+  </script>
+</body>
+</html>
