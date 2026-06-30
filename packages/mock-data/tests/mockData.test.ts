@@ -13,7 +13,7 @@ describe("Mock Data", () => {
       expect(typeof asset.type).toBe("string");
       expect(typeof asset.location).toBe("string");
       expect(typeof asset.criticality).toBe("string");
-      expect(typeof asset.status).toBe("string");
+      expect(asset).not.toHaveProperty("status");
       expect(typeof asset.expectedFlowRate).toBe("number");
     }
   });

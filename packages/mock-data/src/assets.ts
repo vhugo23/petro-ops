@@ -5,7 +5,6 @@ export const mockAssets = [
     type: "Pump",
     location: "Site A",
     criticality: "High",
-    status: "Healthy",
     expectedFlowRate: 100,
   },
   {
@@ -14,7 +13,6 @@ export const mockAssets = [
     type: "Compressor",
     location: "Site B",
     criticality: "Medium",
-    status: "Warning",
     expectedFlowRate: 80,
   },
 ];

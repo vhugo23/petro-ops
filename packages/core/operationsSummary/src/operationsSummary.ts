@@ -8,7 +8,6 @@ type Asset = {
   type: string;
   location: string;
   criticality: string;
-  status: string;
   expectedFlowRate: number;
 };
 

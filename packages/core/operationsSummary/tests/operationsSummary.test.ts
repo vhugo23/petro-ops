@@ -10,7 +10,6 @@ const testAsset = {
   type: "Pump",
   location: "Site X",
   criticality: "High",
-  status: "Healthy",
   expectedFlowRate: 100,
 };
 

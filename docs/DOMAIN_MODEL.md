@@ -12,7 +12,6 @@ Fields:
 - type
 - location
 - criticality
-- status
 - expectedFlowRate
 
 Example asset types:
