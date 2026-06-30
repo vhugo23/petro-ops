@@ -91,6 +91,9 @@ The AI agent must:
 
 ## Current Challenge Phase
 
-Day 1: Isolation and governance.
+Day 2: Requirements, domain model, system boundaries, and acceptance criteria.
 
-No product features should be implemented today
+No product features should be implemented today.
+
+The goal is to define what PetroOps AI should do before writing implementation code.
+
