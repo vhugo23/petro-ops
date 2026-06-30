@@ -9,6 +9,8 @@ services:
       - ..:/workspace
     env_file:
       - ../.env.example
+    ports:
+      - "3000:3000"
     command: /bin/bash
     tty: true
     stdin_open: true
