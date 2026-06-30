@@ -13,6 +13,7 @@ Fields:
 - location
 - criticality
 - status
+- expectedFlowRate
 
 Example asset types:
 - Pump
@@ -63,7 +64,7 @@ Fields:
 - priority
 - issueDescription
 - recommendedAction
-- assignedTechnician
+- assignedTechnicianId
 - status
 - createdAt
 
@@ -92,6 +93,7 @@ Fields:
 - lostProductionEstimate
 - revenueImpactEstimate
 - maintenanceCostEstimate
+- visibleAssumptions (the ProductionAssumption fields used in this calculation)
 
 ### Technician
 
@@ -101,11 +103,12 @@ Fields:
 - technicianId
 - name
 - specialty
-- status
+- availability
 
-Allowed statuses:
+Allowed availability values:
 - Available
 - Assigned
+- Off Duty
 
 For the MVP, technicians are a static mock list, not a managed entity.
 
@@ -128,7 +131,7 @@ Asset
   has many SensorReadings
   has many HealthAssessments
   may have many WorkOrders
-  may have many CommercialImpact records
+  has many CommercialImpact records (one per HealthAssessment)
 
 SensorReading
   belongs to Asset
@@ -141,16 +144,16 @@ HealthAssessment
 WorkOrder
   belongs to Asset
   belongs to HealthAssessment (via assessmentId)
-  may be assigned to Technician
+  may be assigned to Technician (via assignedTechnicianId)
 
 CommercialImpact
   belongs to Asset
   belongs to HealthAssessment (via assessmentId)
-  may be linked to WorkOrder (via workOrderId)
+  may be linked to WorkOrder (via workOrderId, Critical only)
   calculated using ProductionAssumption
 
 Technician
-  may have many WorkOrders (assigned)
+  may have many WorkOrders (assigned via assignedTechnicianId)
 
 ProductionAssumption
   referenced by CommercialImpact calculations

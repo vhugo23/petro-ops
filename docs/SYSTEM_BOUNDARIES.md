@@ -39,6 +39,39 @@ Sensor risk weights (sum to 100):
 - flowRate deviation: up to 15 points
 - runtimeHours: up to 15 points
 
+Sensor scoring thresholds (deterministic point bands):
+
+vibration (max 30 points):
+- <= 3.0 mm/s: 0 points
+- > 3.0 and <= 6.0 mm/s: 15 points
+- > 6.0 mm/s: 30 points
+
+temperature (max 20 points):
+- <= 180°F: 0 points
+- > 180°F and <= 210°F: 10 points
+- > 210°F: 20 points
+
+pressure (max 20 points):
+- 80–120 psi: 0 points
+- 60–79 psi or 121–140 psi: 10 points
+- < 60 psi or > 140 psi: 20 points
+
+flowRate deviation (max 15 points), measured against the asset's expectedFlowRate:
+- <= 10% deviation: 0 points
+- > 10% and <= 25% deviation: 8 points
+- > 25% deviation: 15 points
+
+runtimeHours (max 15 points):
+- <= 4000 hours: 0 points
+- > 4000 and <= 8000 hours: 8 points
+- > 8000 hours: 15 points
+
+Classification boundary rule (applied to the summed score):
+- 39 → Healthy
+- 40 → Warning
+- 69 → Warning
+- 70 → Critical
+
 Trigger model: health assessments are calculated on demand from the latest sensor readings
 for an asset, not on a schedule or stream. Each assessment output must include enough fields
 to be traceable (assessmentId, timestamp, contributing factors/reasons).
@@ -63,6 +96,13 @@ Behavior depends on health status:
   work order is created.
 - Healthy assets: no work order and no advisory.
 
+Priority mapping for Critical work orders:
+- Critical score 70–89: High priority
+- Critical score 90–100: Emergency priority
+
+Technician assignment: assignedTechnicianId must resolve to a valid entry in the static
+Technician mock list.
+
 Inputs:
 - Asset
 - Health assessment
@@ -77,6 +117,33 @@ Outputs:
 
 Responsible for estimating business impact.
 
+Commercial impact is calculated on demand for every health assessment, not just Critical
+ones:
+- Healthy: estimatedDowntimeHours, lostProductionEstimate, revenueImpactEstimate, and
+  maintenanceCostEstimate are all exactly 0.
+- Warning: an advisory impact estimate is generated. No workOrderId is attached (no work
+  order exists for Warning).
+- Critical: a full impact estimate is generated, including workOrderId when a work order
+  exists.
+
+Formulas:
+
+estimatedDowntimeHours:
+- Healthy: 0
+- Warning: 2 * downtimeMultiplier
+- Critical 70–89: 8 * downtimeMultiplier
+- Critical 90–100: 16 * downtimeMultiplier
+
+lostProductionEstimate = estimatedDowntimeHours * productionRatePerHour
+
+revenueImpactEstimate = lostProductionEstimate * revenuePerUnit
+
+maintenanceCostEstimate:
+- Healthy: 0
+- Warning: baseMaintenanceCost
+- Critical 70–89: baseMaintenanceCost * 2
+- Critical 90–100: baseMaintenanceCost * 3
+
 Inputs:
 - Asset
 - Risk level
@@ -89,7 +156,8 @@ Outputs:
 - Revenue impact estimate
 - Maintenance cost estimate
 - assessmentId (the triggering health assessment)
-- workOrderId (optional, if a work order was created)
+- workOrderId (optional, present only when a work order exists)
+- visibleAssumptions (the ProductionAssumption values used in the calculation)
 
 ### 5. API Layer
 

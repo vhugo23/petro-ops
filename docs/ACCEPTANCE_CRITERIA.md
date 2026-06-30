@@ -38,6 +38,19 @@ The risk score is a deterministic, rule-based sum of sensor weights:
 - flowRate deviation: up to 15 points
 - runtimeHours: up to 15 points
 
+Sensor scoring thresholds:
+- vibration: <=3.0 mm/s = 0 pts, >3.0–6.0 mm/s = 15 pts, >6.0 mm/s = 30 pts
+- temperature: <=180°F = 0 pts, >180–210°F = 10 pts, >210°F = 20 pts
+- pressure: 80–120 psi = 0 pts, 60–79 or 121–140 psi = 10 pts, <60 or >140 psi = 20 pts
+- flowRate deviation (vs. asset expectedFlowRate): <=10% = 0 pts, >10–25% = 8 pts, >25% = 15 pts
+- runtimeHours: <=4000 hrs = 0 pts, >4000–8000 hrs = 8 pts, >8000 hrs = 15 pts
+
+Explicit classification boundary rule:
+- score 39 → Healthy
+- score 40 → Warning
+- score 69 → Warning
+- score 70 → Critical
+
 ### AC-5: Health assessment explains risk
 
 Given an asset is Warning or Critical,
@@ -69,23 +82,40 @@ Given an asset is classified as Healthy,
 when the work order module evaluates the health assessment,
 then it must not create a work order or an advisory recommendation.
 
+### AC-6c: Critical work order priority mapping
+
+Given a work order is created for a Critical asset,
+then priority must be High when the risk score is 70–89, and Emergency when the risk score is 90–100.
+
 ### AC-7: Work order includes required fields
 
 Given a work order is created,
-then it must include assetId, assessmentId, priority, issueDescription, recommendedAction, assignedTechnician, and status.
+then it must include assetId, assessmentId, priority, issueDescription, recommendedAction, assignedTechnicianId, and status.
 
 ### AC-7a: Assigned technician comes from the mock technician list
 
 Given a work order is created,
-then assignedTechnician must reference a technician from the static Technician mock list.
+then assignedTechnicianId must reference a technician from the static Technician mock list.
 
 ## Commercial Impact
 
-### AC-8: Critical asset estimates business impact
+### AC-8: Commercial impact is calculated for every health assessment
 
-Given an asset is Critical,
+Given any asset has a health assessment (Healthy, Warning, or Critical),
 when commercial impact is calculated,
 then the system must estimate downtime, lost production, revenue impact, and maintenance cost.
+
+### AC-8a: Healthy asset has exactly zero commercial impact
+
+Given an asset is classified as Healthy,
+when commercial impact is calculated,
+then estimatedDowntimeHours, lostProductionEstimate, revenueImpactEstimate, and maintenanceCostEstimate must all equal 0.
+
+### AC-8b: Warning asset receives an advisory impact estimate with no work order link
+
+Given an asset is classified as Warning,
+when commercial impact is calculated,
+then an advisory impact estimate must be generated, and workOrderId must not be present.
 
 ### AC-9: Commercial impact must be explainable
 
@@ -101,13 +131,21 @@ Example assumptions:
 ### AC-9a: Commercial impact includes the production assumptions used
 
 Given commercial impact is calculated,
-then the output must include the ProductionAssumption values used in the calculation:
+then the output must include a visibleAssumptions object with the ProductionAssumption values used in the calculation:
 productionRatePerHour, revenuePerUnit, baseMaintenanceCost, and downtimeMultiplier.
 
 ### AC-9b: Commercial impact is traceable to its source
 
 Given commercial impact is calculated,
-then it must include assessmentId, and workOrderId if a work order was created.
+then it must include assessmentId, and workOrderId only when a work order exists (Critical case).
+
+### AC-9c: Commercial impact formulas are deterministic
+
+Given commercial impact is calculated, then:
+- estimatedDowntimeHours = 0 (Healthy), 2 * downtimeMultiplier (Warning), 8 * downtimeMultiplier (Critical 70–89), or 16 * downtimeMultiplier (Critical 90–100)
+- lostProductionEstimate = estimatedDowntimeHours * productionRatePerHour
+- revenueImpactEstimate = lostProductionEstimate * revenuePerUnit
+- maintenanceCostEstimate = 0 (Healthy), baseMaintenanceCost (Warning), baseMaintenanceCost * 2 (Critical 70–89), or baseMaintenanceCost * 3 (Critical 90–100)
 
 ## AI-Assisted Development Rules
 
